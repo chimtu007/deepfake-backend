@@ -1,0 +1,68 @@
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+  color: #fff;
+  text-align: center;
+  padding: 40px;
+}
+
+.container {
+  background: #1e2a38;
+  padding: 40px;
+  border-radius: 16px;
+  max-width: 500px;
+  margin: auto;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+
+h1 {
+  color: #00ffd5;
+  margin-bottom: 10px;
+}
+
+.tagline {
+  color: #ccc;
+  margin-bottom: 30px;
+}
+
+input[type="file"] {
+  background: #fff;
+  color: #000;
+  padding: 10px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+
+#predictBtn {
+  padding: 12px 30px;
+  background: #00ffd5;
+  border: none;
+  border-radius: 30px;
+  font-size: 16px;
+  color: #000;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: 0.3s;
+}
+
+#predictBtn:hover {
+  background: #00bfae;
+}
+
+#imagePreviewContainer {
+  margin-top: 20px;
+}
+
+#imagePreview {
+  max-width: 100%;
+  height: auto;
+  border-radius: 10px;
+  margin-top: 10px;
+}
+
+.result-box {
+  margin-top: 30px;
+  font-size: 20px;
+  font-weight: bold;
+}
