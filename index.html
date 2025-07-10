@@ -3,21 +3,19 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Deepfake Detection AI</title>
-  <link rel="stylesheet" href="style.css"/>
+  <title>Deepfake Detector</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.10.0"></script>
 </head>
 <body>
   <div class="container">
-    <h1>🧠 Deepfake Detection AI</h1>
-    <p class="tagline">Upload an image to check if it's Real or Fake</p>
-
-    <input type="file" id="imageInput" accept="image/*"/>
-    <div id="imagePreviewContainer">
-      <img id="imagePreview" src="#" alt="Preview" style="display: none;"/>
+    <h1>🧠 AI Deepfake Detector</h1>
+    <input type="file" id="imageInput" accept="image/*" />
+    <button onclick="detect()">🔍 Detect</button>
+    <div id="image-container">
+      <img id="preview" alt="Image preview"/>
     </div>
-    <button id="predictBtn">🔍 Predict</button>
-
-    <div id="result" class="result-box"></div>
+    <div id="result">Loading model...</div>
   </div>
 
   <script src="script.js"></script>
