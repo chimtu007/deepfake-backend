@@ -1,21 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Deepfake Detector</title>
-  <link rel="stylesheet" href="style.css" />
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.10.0"></script>
+  <meta charset="UTF-8">
+  <title>AI Deepfake Detector</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.10.0/dist/tf.min.js"></script>
 </head>
 <body>
   <div class="container">
     <h1>🧠 AI Deepfake Detector</h1>
-    <input type="file" id="imageInput" accept="image/*" />
+    
+    <input type="file" id="imageInput" accept="image/*">
     <button onclick="detect()">🔍 Detect</button>
-    <div id="image-container">
-      <img id="preview" alt="Image preview"/>
-    </div>
-    <div id="result">Loading model...</div>
+    
+    <div id="imagePreview"></div>
+    <p id="result">Model loading...</p>
   </div>
 
   <script src="script.js"></script>
