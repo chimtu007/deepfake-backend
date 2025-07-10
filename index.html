@@ -1,20 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Dummy Deepfake Detection</title>
-    <style>
-        body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
-        #result { font-size: 20px; font-weight: bold; margin-top: 20px; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Deepfake Detection AI</title>
+  <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
-    <h1>Deepfake Detection</h1>
-    <input type="file" id="file" accept="image/*"><br><br>
-    <button id="predictBtn">Predict</button>
-    <p id="status">Loading model...</p>
-    <p id="result"></p>
+  <div class="container">
+    <h1>🧠 Deepfake Detection AI</h1>
+    <p class="tagline">Upload an image to check if it's Real or Fake</p>
 
-    <script src="script.js"></script>
+    <input type="file" id="imageInput" accept="image/*"/>
+    <div id="imagePreviewContainer">
+      <img id="imagePreview" src="#" alt="Preview" style="display: none;"/>
+    </div>
+    <button id="predictBtn">🔍 Predict</button>
+
+    <div id="result" class="result-box"></div>
+  </div>
+
+  <script src="script.js"></script>
 </body>
 </html>
