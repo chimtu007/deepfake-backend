@@ -1,37 +1,52 @@
-const imageInput = document.getElementById("imageInput");
-const imagePreview = document.getElementById("imagePreview");
-const predictBtn = document.getElementById("predictBtn");
-const resultDiv = document.getElementById("result");
+let model;
 
-// Preview image
-imageInput.addEventListener("change", () => {
-  const file = imageInput.files[0];
-  if (file) {
-    const reader = new FileReader();
-    reader.onload = e => {
-      imagePreview.src = e.target.result;
-      imagePreview.style.display = "block";
-    };
-    reader.readAsDataURL(file);
-    resultDiv.innerText = ""; // clear previous result
+async function loadModel() {
+  try {
+    document.getElementById("result").innerText = "Loading model...";
+    model = await tf.loadLayersModel("model.json");
+    document.getElementById("result").innerText = "Model loaded! Upload an image.";
+  } catch (err) {
+    document.getElementById("result").innerText = "Failed to load model.";
+    console.error("Model load error:", err);
   }
-});
+}
 
-// Dummy Predict Function
-predictBtn.addEventListener("click", () => {
-  if (!imageInput.files.length) {
-    alert("Please select an image first!");
+loadModel();
+
+function preprocessImage(image) {
+  return tf.tidy(() => {
+    return tf.browser.fromPixels(image)
+      .resizeNearestNeighbor([224, 224]) // Assumes your model uses 224x224 input
+      .toFloat()
+      .div(255.0)
+      .expandDims();
+  });
+}
+
+async function detect() {
+  const fileInput = document.getElementById("imageInput");
+  const file = fileInput.files[0];
+  if (!file) {
+    alert("Please upload an image first!");
     return;
   }
 
-  // Simulate prediction
-  const confidence = Math.floor(Math.random() * 41) + 60; // 60% to 100%
-  const isReal = Math.random() < 0.5; // Randomly choose real or fake
+  const img = new Image();
+  img.src = URL.createObjectURL(file);
+  img.onload = async () => {
+    document.getElementById("preview").src = img.src;
 
-  const resultText = isReal
-    ? `✅ ${confidence}% Real`
-    : `🚨 ${100 - confidence}% Fake`;
+    const input = preprocessImage(img);
+    const prediction = await model.predict(input).data();
+    const probability = prediction[0];
 
-  resultDiv.innerText = resultText;
-  resultDiv.style.color = isReal ? "#00ff88" : "#ff4d4d";
-});
+    let label = "";
+    if (probability > 0.5) {
+      label = `🔴 Fake Face Detected — Confidence: ${(probability * 100).toFixed(2)}%`;
+    } else {
+      label = `🟢 Real Face Detected — Confidence: ${((1 - probability) * 100).toFixed(2)}%`;
+    }
+
+    document.getElementById("result").innerText = label;
+  };
+}
