@@ -1,52 +1,53 @@
 let model;
+const resultEl = document.getElementById("result");
 
 async function loadModel() {
   try {
-    document.getElementById("result").innerText = "Loading model...";
+    resultEl.textContent = "Loading model...";
     model = await tf.loadLayersModel("model.json");
-    document.getElementById("result").innerText = "Model loaded! Upload an image.";
-  } catch (err) {
-    document.getElementById("result").innerText = "Failed to load model.";
-    console.error("Model load error:", err);
+    resultEl.textContent = "Model loaded. Upload an image.";
+  } catch (error) {
+    console.error("Model load error:", error);
+    resultEl.textContent = "Failed to load model.";
   }
 }
 
 loadModel();
 
-function preprocessImage(image) {
+function preprocessImage(img) {
   return tf.tidy(() => {
-    return tf.browser.fromPixels(image)
-      .resizeNearestNeighbor([224, 224]) // Assumes your model uses 224x224 input
+    let tensor = tf.browser.fromPixels(img)
+      .resizeBilinear([224, 224])
       .toFloat()
-      .div(255.0)
+      .div(tf.scalar(255))
       .expandDims();
+    return tensor;
   });
 }
 
 async function detect() {
-  const fileInput = document.getElementById("imageInput");
-  const file = fileInput.files[0];
-  if (!file) {
-    alert("Please upload an image first!");
-    return;
-  }
+  const file = document.getElementById("imageInput").files[0];
+  if (!file) return alert("Please select an image.");
 
-  const img = new Image();
-  img.src = URL.createObjectURL(file);
-  img.onload = async () => {
-    document.getElementById("preview").src = img.src;
+  const reader = new FileReader();
+  reader.onload = async function (e) {
+    const img = new Image();
+    img.src = e.target.result;
+    img.onload = async function () {
+      document.getElementById("imagePreview").innerHTML = '';
+      document.getElementById("imagePreview").appendChild(img);
 
-    const input = preprocessImage(img);
-    const prediction = await model.predict(input).data();
-    const probability = prediction[0];
+      const input = preprocessImage(img);
+      const prediction = await model.predict(input).data();
+      const score = prediction[0]; // assuming 1 output neuron
+      
+      const label = score > 0.5 ? "🧪 Fake" : "✅ Real";
+      const percentage = (score > 0.5 ? score : 1 - score) * 100;
 
-    let label = "";
-    if (probability > 0.5) {
-      label = `🔴 Fake Face Detected — Confidence: ${(probability * 100).toFixed(2)}%`;
-    } else {
-      label = `🟢 Real Face Detected — Confidence: ${((1 - probability) * 100).toFixed(2)}%`;
-    }
+      resultEl.textContent = `${label} — Confidence: ${percentage.toFixed(2)}%`;
 
-    document.getElementById("result").innerText = label;
+      tf.dispose([input]);
+    };
   };
+  reader.readAsDataURL(file);
 }
