@@ -1,48 +1,45 @@
-// Wait for the page to load
-window.addEventListener('load', () => {
-  const upload = document.getElementById('upload');
-  const resultText = document.getElementById('result');
+let model;
 
-  let model;
+async function loadModel() {
+    document.getElementById("status").innerText = "Loading model...";
+    try {
+        model = await tf.loadLayersModel("model.json");  // update if in a subfolder
+        document.getElementById("status").innerText = "Model loaded!";
+    } catch (error) {
+        document.getElementById("status").innerText = "Failed to load model.";
+        console.error("Model load error:", error);
+    }
+}
 
-  // Load the TensorFlow.js model
-  async function loadModel() {
-    resultText.innerText = 'Loading model...';
-    model = await tf.loadLayersModel('model.json');
-    resultText.innerText = 'Model loaded. Upload an image.';
-  }
+async function predict() {
+    const fileInput = document.getElementById("imageInput");
+    if (!fileInput.files.length) {
+        alert("Please choose an image.");
+        return;
+    }
 
-  // Preprocess image
-  function preprocessImage(imageElement) {
-    return tf.tidy(() => {
-      let tensor = tf.browser.fromPixels(imageElement)
+    const img = await loadImage(fileInput.files[0]);
+    const tensor = tf.browser.fromPixels(img)
         .resizeNearestNeighbor([224, 224])
         .toFloat()
         .div(255.0)
         .expandDims();
-      return tensor;
+
+    const prediction = model.predict(tensor);
+    const result = await prediction.data();
+
+    const confidence = (result[0] * 100).toFixed(2);
+    const label = result[0] > 0.5 ? "Fake" : "Real";
+
+    document.getElementById("result").innerText = `Prediction: ${label} (${confidence}%)`;
+}
+
+function loadImage(file) {
+    return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.src = URL.createObjectURL(file);
     });
-  }
+}
 
-  // Predict and show result
-  async function predict(imageElement) {
-    const tensor = preprocessImage(imageElement);
-    const prediction = await model.predict(tensor).data();
-    const result = prediction[0] > 0.5 ? '⚠️ Fake' : '✅ Real';
-    resultText.innerText = `Prediction: ${result} (${prediction[0].toFixed(4)})`;
-  }
-
-  // Handle image upload
-  upload.addEventListener('change', async (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const img = new Image();
-    img.src = URL.createObjectURL(file);
-    img.onload = async () => {
-      await predict(img);
-    };
-  });
-
-  loadModel(); // Load model on page load
-});
+window.addEventListener("load", loadModel);
