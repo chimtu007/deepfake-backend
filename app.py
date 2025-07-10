@@ -1,46 +1,45 @@
-from flask import Flask, render_template, request, jsonify
+import streamlit as st
+import numpy as np
+import gdown
+import os
+from PIL import Image
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing import image
-import numpy as np
-import os
-import gdown
 
-app = Flask(__name__)
-
+# Constants
 MODEL_PATH = 'deepfake_model.h5'
-GDRIVE_FILE_ID = '1nxuez46yUSBXNcnQSTnbRpSsEPI5NNNm'
+FILE_ID = '1nxuez46yUSBXNcnQSTnbRpSsEPI5NNNm'
 
-# Download model if not exists
+# Download the model if not already present
 if not os.path.exists(MODEL_PATH):
-    print("Downloading model from Google Drive...")
-    gdown.download(f'https://drive.google.com/uc?id={GDRIVE_FILE_ID}', MODEL_PATH, quiet=False)
+    with st.spinner('Downloading model...'):
+        gdown.download(f'https://drive.google.com/uc?id={FILE_ID}', MODEL_PATH, quiet=False)
 
 # Load model
-model = load_model(MODEL_PATH)
+@st.cache_resource
+def load_deepfake_model():
+    return load_model(MODEL_PATH)
 
-@app.route('/')
-def index():
-    return render_template('index.html')
+model = load_deepfake_model()
 
-@app.route('/predict', methods=['POST'])
-def predict():
-    if 'file' not in request.files:
-        return jsonify({'error': 'No file uploaded'})
+# Streamlit UI
+st.title("🧠 Deepfake Detector")
+st.write("Upload an image to check if it's Real or Fake")
 
-    file = request.files['file']
-    if file.filename == '':
-        return jsonify({'error': 'No selected file'})
+uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
 
-    img_path = os.path.join('static', file.filename)
-    file.save(img_path)
+if uploaded_file is not None:
+    img = Image.open(uploaded_file).convert("RGB")
+    st.image(img, caption="Uploaded Image", use_column_width=True)
 
-    img = image.load_img(img_path, target_size=(224, 224))  # Change size as needed
-    img_array = image.img_to_array(img)
-    img_array = np.expand_dims(img_array, axis=0) / 255.0
+    if st.button("Predict"):
+        with st.spinner("Analyzing..."):
+            img = img.resize((224, 224))  # adjust as per your model
+            img_array = image.img_to_array(img)
+            img_array = np.expand_dims(img_array, axis=0) / 255.0
 
-    prediction = model.predict(img_array)[0][0]
-    result = 'Fake' if prediction > 0.5 else 'Real'
-    return jsonify({'prediction': result, 'score': float(prediction)})
+            prediction = model.predict(img_array)[0][0]
+            label = "Fake" if prediction > 0.5 else "Real"
+            confidence = float(prediction) if prediction > 0.5 else 1 - float(prediction)
 
-if __name__ == '__main__':
-    app.run(debug=True)
+            st.success(f"Prediction: **{label}** with confidence **{confidence:.2f}**")
