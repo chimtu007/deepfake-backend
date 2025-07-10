@@ -1,45 +1,40 @@
-let model;
+document.addEventListener("DOMContentLoaded", () => {
+    const status = document.getElementById("status");
+    const result = document.getElementById("result");
+    const fileInput = document.getElementById("file");
+    const predictBtn = document.getElementById("predictBtn");
 
-async function loadModel() {
-    document.getElementById("status").innerText = "Loading model...";
-    try {
-        model = await tf.loadLayersModel("model.json");  // update if in a subfolder
-        document.getElementById("status").innerText = "Model loaded!";
-    } catch (error) {
-        document.getElementById("status").innerText = "Failed to load model.";
-        console.error("Model load error:", error);
-    }
-}
-
-async function predict() {
-    const fileInput = document.getElementById("imageInput");
-    if (!fileInput.files.length) {
-        alert("Please choose an image.");
-        return;
+    // Dummy model load simulation
+    function loadModel() {
+        status.innerText = "Model loaded successfully!";
+        console.log("Dummy model loaded");
     }
 
-    const img = await loadImage(fileInput.files[0]);
-    const tensor = tf.browser.fromPixels(img)
-        .resizeNearestNeighbor([224, 224])
-        .toFloat()
-        .div(255.0)
-        .expandDims();
+    // Fake prediction logic
+    function predict() {
+        const file = fileInput.files[0];
+        if (!file) {
+            alert("Please choose an image first!");
+            return;
+        }
 
-    const prediction = model.predict(tensor);
-    const result = await prediction.data();
+        // Simulate prediction delay
+        result.innerText = "Predicting...";
+        setTimeout(() => {
+            const random = Math.random();
+            if (random > 0.5) {
+                result.innerText = "Result: FAKE IMAGE 😵‍💫";
+                result.style.color = "red";
+            } else {
+                result.innerText = "Result: REAL IMAGE 🧑‍🦱";
+                result.style.color = "green";
+            }
+        }, 1500);
+    }
 
-    const confidence = (result[0] * 100).toFixed(2);
-    const label = result[0] > 0.5 ? "Fake" : "Real";
+    // Attach event
+    predictBtn.addEventListener("click", predict);
 
-    document.getElementById("result").innerText = `Prediction: ${label} (${confidence}%)`;
-}
-
-function loadImage(file) {
-    return new Promise((resolve) => {
-        const img = new Image();
-        img.onload = () => resolve(img);
-        img.src = URL.createObjectURL(file);
-    });
-}
-
-window.addEventListener("load", loadModel);
+    // Simulate model loading on page load
+    loadModel();
+});
