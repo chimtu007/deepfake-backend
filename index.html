@@ -2,48 +2,50 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Deepfake Detector</title>
+  <title>Dummy Deepfake Detector</title>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
-      background: #121212;
-      color: #f5f5f5;
+      background: #111;
+      color: #f0f0f0;
       text-align: center;
       padding: 40px;
     }
 
     .container {
-      background-color: #1f1f1f;
+      background-color: #1d1d1d;
       padding: 30px;
-      border-radius: 10px;
+      border-radius: 12px;
       max-width: 500px;
       margin: auto;
-      box-shadow: 0 0 10px #333;
+      box-shadow: 0 0 15px rgba(0, 255, 200, 0.1);
     }
 
     h1 {
-      color: #00ffd5;
+      color: #00ffe0;
     }
 
-    input[type="file"] {
-      margin-top: 15px;
+    input[type="file"], button {
+      margin-top: 20px;
+      padding: 10px;
+      border: none;
+      border-radius: 6px;
+      background: #333;
+      color: white;
+      cursor: pointer;
     }
 
     #preview {
       margin-top: 20px;
       max-width: 100%;
       border: 2px solid #444;
-      border-radius: 8px;
+      border-radius: 10px;
     }
 
     #result {
       margin-top: 20px;
-      font-size: 20px;
+      font-size: 22px;
       font-weight: bold;
-    }
-
-    .loading {
-      color: gold;
     }
 
     .real {
@@ -51,16 +53,23 @@
     }
 
     .fake {
-      color: #ff3c3c;
+      color: #ff4c4c;
+    }
+
+    .loading {
+      color: #ffaa00;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>🧠 Deepfake Detector</h1>
-    <p>Select an image to detect if it's <b>Real</b> or <b>Fake</b>.</p>
+    <h1>🧪 Dummy Deepfake Detector</h1>
+    <p>Upload a face image and click Analyze</p>
     <input type="file" id="fileInput" accept="image/*" />
+    <br />
     <img id="preview" alt="Preview" />
+    <br />
+    <button id="analyzeBtn">Analyze</button>
     <div id="result">Result will appear here...</div>
   </div>
 
@@ -68,61 +77,40 @@
     const fileInput = document.getElementById("fileInput");
     const preview = document.getElementById("preview");
     const resultDiv = document.getElementById("result");
+    const analyzeBtn = document.getElementById("analyzeBtn");
 
-    async function callGradioAPI(base64Image, retries = 3) {
-      const res = await fetch(
-        "https://singhvikram848446-deep-fake-detection.hf.space/api/predict/",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            data: [base64Image]
-          })
-        }
-      );
+    let uploadedImage = null;
 
-      const result = await res.json();
-
-      if (result.error && retries > 0 && result.error.includes("loading")) {
-        resultDiv.innerHTML = "⏳ Starting server... retrying in 5s.";
-        await new Promise((res) => setTimeout(res, 5000));
-        return await callGradioAPI(base64Image, retries - 1);
-      }
-
-      return result;
-    }
-
-    fileInput.addEventListener("change", async () => {
+    fileInput.addEventListener("change", () => {
       const file = fileInput.files[0];
       if (!file) return;
 
       const reader = new FileReader();
-      reader.onload = async () => {
-        const base64Image = reader.result;
-        preview.src = base64Image;
-        resultDiv.innerHTML = "<span class='loading'>⏳ Analyzing...</span>";
-
-        const result = await callGradioAPI(base64Image);
-        console.log("API Response:", result);
-
-        if (result && result.data && result.data.length > 0 && typeof result.data[0] === "string") {
-          const label = result.data[0].toLowerCase();
-
-          if (label.includes("fake")) {
-            resultDiv.innerHTML = `<span class="fake">❌ FAKE</span>`;
-          } else if (label.includes("real")) {
-            resultDiv.innerHTML = `<span class="real">✅ REAL</span>`;
-          } else {
-            resultDiv.innerText = `🔎 Result: ${label}`;
-          }
-        } else {
-          resultDiv.innerText = "❌ Could not detect. Try another image.";
-        }
+      reader.onload = () => {
+        uploadedImage = reader.result;
+        preview.src = uploadedImage;
+        resultDiv.innerHTML = "Ready to analyze.";
       };
-
       reader.readAsDataURL(file);
+    });
+
+    analyzeBtn.addEventListener("click", () => {
+      if (!uploadedImage) {
+        resultDiv.innerText = "❌ Please upload an image first!";
+        return;
+      }
+
+      resultDiv.innerHTML = "<span class='loading'>⏳ Analyzing image...</span>";
+
+      // Fake "model processing delay"
+      setTimeout(() => {
+        const prediction = Math.random() > 0.5 ? "Real" : "Fake";
+        if (prediction === "Real") {
+          resultDiv.innerHTML = "<span class='real'>✅ This image is REAL</span>";
+        } else {
+          resultDiv.innerHTML = "<span class='fake'>❌ This image is FAKE</span>";
+        }
+      }, 2000); // 2 second delay
     });
   </script>
 </body>
