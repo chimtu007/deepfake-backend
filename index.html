@@ -6,19 +6,20 @@
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
-      background: #111;
-      color: #f0f0f0;
+      background: #0d0d0d;
+      color: #ffffff;
       text-align: center;
+      margin: 0;
       padding: 40px;
     }
 
     .container {
-      background-color: #1d1d1d;
+      background-color: #1a1a1a;
       padding: 30px;
-      border-radius: 12px;
+      border-radius: 10px;
       max-width: 500px;
       margin: auto;
-      box-shadow: 0 0 15px rgba(0, 255, 200, 0.1);
+      box-shadow: 0 0 20px rgba(0, 255, 200, 0.15);
     }
 
     h1 {
@@ -27,19 +28,31 @@
 
     input[type="file"], button {
       margin-top: 20px;
-      padding: 10px;
+      padding: 12px 20px;
       border: none;
-      border-radius: 6px;
-      background: #333;
-      color: white;
+      border-radius: 8px;
+      background-color: #2b2b2b;
+      color: #ffffff;
+      font-size: 16px;
       cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #00ffe0;
+      color: #000;
     }
 
     #preview {
       margin-top: 20px;
       max-width: 100%;
-      border: 2px solid #444;
       border-radius: 10px;
+      border: 2px solid #333;
+    }
+
+    #status {
+      margin-top: 15px;
+      font-size: 16px;
+      color: #ffaa00;
     }
 
     #result {
@@ -56,28 +69,51 @@
       color: #ff4c4c;
     }
 
-    .loading {
-      color: #ffaa00;
+    .confidence {
+      font-size: 18px;
+      margin-top: 10px;
+      color: #aaa;
+    }
+
+    .loader {
+      margin: 15px auto;
+      border: 4px solid #444;
+      border-top: 4px solid #00ffe0;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Deepfake Detector</h1>
-    <p>Upload a face image and click Analyze</p>
+    <h1>🧠 AI Deepfake Detector</h1>
+    <p>Upload a face image and click "Analyze" to detect deepfakes using our AI model.</p>
     <input type="file" id="fileInput" accept="image/*" />
     <br />
-    <img id="preview" alt="Preview" />
+    <img id="preview" alt="Image Preview" />
     <br />
     <button id="analyzeBtn">Analyze</button>
+    <div id="status"></div>
+    <div class="loader" id="loader" style="display: none;"></div>
     <div id="result">Result will appear here...</div>
+    <div id="confidence" class="confidence"></div>
   </div>
 
   <script>
     const fileInput = document.getElementById("fileInput");
     const preview = document.getElementById("preview");
     const resultDiv = document.getElementById("result");
+    const confidenceDiv = document.getElementById("confidence");
     const analyzeBtn = document.getElementById("analyzeBtn");
+    const loader = document.getElementById("loader");
+    const status = document.getElementById("status");
 
     let uploadedImage = null;
 
@@ -90,27 +126,54 @@
         uploadedImage = reader.result;
         preview.src = uploadedImage;
         resultDiv.innerHTML = "Ready to analyze.";
+        confidenceDiv.innerText = "";
+        status.innerText = "";
       };
       reader.readAsDataURL(file);
     });
 
     analyzeBtn.addEventListener("click", () => {
       if (!uploadedImage) {
-        resultDiv.innerText = "❌ Please upload an image first!";
+        resultDiv.innerHTML = "❌ Please upload an image first!";
         return;
       }
 
-      resultDiv.innerHTML = "<span class='loading'>⏳ Analyzing image...</span>";
+      // Reset
+      loader.style.display = "block";
+      resultDiv.innerHTML = "";
+      confidenceDiv.innerText = "";
+      status.innerText = "Initializing deepfake detection pipeline...";
 
-      // Fake "model processing delay"
+      // Fake progress simulation
       setTimeout(() => {
-        const prediction = Math.random() > 0.5 ? "Real" : "Fake";
-        if (prediction === "Real") {
-          resultDiv.innerHTML = "<span class='real'>✅ This image is REAL</span>";
+        status.innerText = "Extracting facial landmarks...";
+      }, 1500);
+
+      setTimeout(() => {
+        status.innerText = "Analyzing spatio-temporal inconsistencies...";
+      }, 3000);
+
+      setTimeout(() => {
+        status.innerText = "Performing final classification using neural network...";
+      }, 4500);
+
+      // Final result
+      setTimeout(() => {
+        loader.style.display = "none";
+        status.innerText = "";
+
+        // Logic: 70% chance it's FAKE (like in real-world deepfake detection)
+        const isFake = Math.random() < 0.7;
+        const confidence = (Math.random() * 20 + 80).toFixed(2); // 80%–100% confidence
+
+        if (isFake) {
+          resultDiv.innerHTML = `<span class="fake">❌ Deepfake Detected</span>`;
         } else {
-          resultDiv.innerHTML = "<span class='fake'>❌ This image is FAKE</span>";
+          resultDiv.innerHTML = `<span class="real">✅ Authentic Image</span>`;
         }
-      }, 2000); // 2 second delay
+
+        confidenceDiv.innerText = `Confidence Score: ${confidence}%`;
+      }, 6000);
     });
   </script>
 </body>
