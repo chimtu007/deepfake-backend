@@ -1,14 +1,16 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>Deepfake Detector</title>
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.10.0/dist/tf.min.js"></script>
-  <script src="script.js" defer></script>
+    <title>Deepfake Detection</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.10.0/dist/tf.min.js"></script>
 </head>
 <body>
-  <h1>Deepfake Detection</h1>
-  <input type="file" id="upload" accept="image/*" />
-  <p id="result">Model not loaded yet...</p>
+    <h1>Deepfake Detection</h1>
+    <p id="status">Loading model...</p>
+    <input type="file" id="imageInput" accept="image/*">
+    <button onclick="predict()">Predict</button>
+    <h2 id="result"></h2>
+
+    <script src="script.js"></script>
 </body>
 </html>
