@@ -6,11 +6,10 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #f7f7f7;
+      background: #f0f0f0;
       text-align: center;
       padding: 40px;
     }
-
     .container {
       background: #fff;
       padding: 30px;
@@ -19,29 +18,24 @@
       margin: auto;
       box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
     }
-
     input[type="file"] {
       margin-top: 15px;
     }
-
+    #preview {
+      margin-top: 20px;
+      max-width: 100%;
+    }
     #result {
       margin-top: 20px;
       font-size: 18px;
       font-weight: bold;
-      color: #333;
-    }
-
-    #preview {
-      margin-top: 20px;
-      max-width: 100%;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>AI Deepfake Detector</h1>
-    <p>Select an image to check if it's real or fake using AI.</p>
-
+    <h1>Deepfake Detector</h1>
+    <p>Select an image to detect if it’s real or fake using AI.</p>
     <input type="file" id="fileInput" accept="image/*" />
     <br />
     <img id="preview" />
@@ -57,33 +51,41 @@
       const file = fileInput.files[0];
       if (!file) return;
 
-      // Show preview
       const reader = new FileReader();
-      reader.onload = async function () {
+      reader.onload = async () => {
+        const base64 = reader.result.split(',')[1]; // Strip the prefix
+
+        // Show image preview
         preview.src = reader.result;
         resultDiv.innerText = "Analyzing...";
 
-        // Send to your Gradio space API
-        const response = await fetch(
-          "https://singhvikram848446-deep-fake-detection.hf.space/api/predict/",
-          {
+        try {
+          const response = await fetch("https://api-inference.huggingface.co/models/mrm8488/deepfake-detection", {
             method: "POST",
             headers: {
+              "Authorization": "Bearer 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",
               "Content-Type": "application/json"
             },
             body: JSON.stringify({
-              data: [reader.result]
+              inputs: {
+                image: base64
+              }
             })
+          });
+
+          const result = await response.json();
+          console.log(result);
+
+          if (result && result[0]) {
+            resultDiv.innerText = `Prediction: ${result[0].label} (${(result[0].score * 100).toFixed(2)}%)`;
+          } else if (result.error) {
+            resultDiv.innerText = "Model is loading. Please try again in a few seconds.";
+          } else {
+            resultDiv.innerText = "Error: Could not detect image.";
           }
-        );
-
-        const result = await response.json();
-        console.log(result);
-
-        if (result && result.data) {
-          resultDiv.innerText = `Prediction: ${result.data}`;
-        } else {
-          resultDiv.innerText = "❌ Could not detect image. Please try again.";
+        } catch (error) {
+          resultDiv.innerText = "Network error. Please try again.";
+          console.error(error);
         }
       };
 
