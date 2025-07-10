@@ -1,45 +1,33 @@
-from flask import Flask, request, jsonify
-from flask_cors import CORS
-from tensorflow.keras.models import load_model
-from tensorflow.keras.preprocessing import image
+import streamlit as st
+import tensorflow as tf
 import numpy as np
 from PIL import Image
-import os
 import gdown
+import os
 
-app = Flask(__name__)
-CORS(app)
+MODEL_FILENAME = "deepfake_resnet50_deepffn.h5"
+DRIVE_FILE_ID = "1nmoZPCxnsMcuYVDQvvh8Uwww3OZsZH7q"  # Extracted from your Drive link
 
-# MODEL FILE SETUP
-model_file = "deepfake_resnet50_deepffn.h5"
-model_url = "https://drive.google.com/uc?export=download&id=1nmoZPCxnsMcuYVDQvvh8Uwww3OZsZH7q"
+@st.cache_resource
+def load_model():
+    if not os.path.exists(MODEL_FILENAME):
+        with st.spinner("Downloading model..."):
+            gdown.download(f"https://drive.google.com/uc?id={DRIVE_FILE_ID}", MODEL_FILENAME, quiet=False)
+    return tf.keras.models.load_model(MODEL_FILENAME)
 
-# Download model if not already present
-if not os.path.exists(model_file):
-    print("Downloading model...")
-    gdown.download(model_url, model_file, quiet=False)
+model = load_model()
 
-# Load the model
-model = load_model(model_file)
+st.title("Deepfake Detection App")
+st.write("Upload a face image to detect whether it's **Real or Fake**.")
 
-def preprocess_image(img):
-    img = img.resize((224, 224))
-    img_array = image.img_to_array(img)
-    img_array = np.expand_dims(img_array, axis=0)
-    img_array /= 255.0
-    return img_array
+uploaded_file = st.file_uploader("Upload Image", type=["jpg", "jpeg", "png"])
+if uploaded_file:
+    image = Image.open(uploaded_file).resize((224, 224))
+    st.image(image, caption="Uploaded Image", use_column_width=True)
 
-@app.route("/predict", methods=["POST"])
-def predict():
-    if "file" not in request.files:
-        return jsonify({"error": "No file uploaded"})
-    file = request.files["file"]
-    img = Image.open(file.stream)
-    processed_img = preprocess_image(img)
-    prediction = model.predict(processed_img)[0][0]
-    result = "FAKE" if prediction >= 0.5 else "REAL"
-    confidence = round(prediction if result == "FAKE" else 1 - prediction, 2)
-    return jsonify({"result": result, "confidence": confidence * 100})
+    img_array = np.array(image) / 255.0
+    img_array = img_array.reshape(1, 224, 224, 3)
 
-if __name__ == "__main__":
-    app.run(debug=True)
+    prediction = model.predict(img_array)[0][0]
+    label = "Fake" if prediction > 0.5 else "Real"
+    st.markdown(f"### Prediction: **{label}** ({prediction:.2f})")
