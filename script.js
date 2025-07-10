@@ -1,40 +1,37 @@
-document.addEventListener("DOMContentLoaded", () => {
-    const status = document.getElementById("status");
-    const result = document.getElementById("result");
-    const fileInput = document.getElementById("file");
-    const predictBtn = document.getElementById("predictBtn");
+const imageInput = document.getElementById("imageInput");
+const imagePreview = document.getElementById("imagePreview");
+const predictBtn = document.getElementById("predictBtn");
+const resultDiv = document.getElementById("result");
 
-    // Dummy model load simulation
-    function loadModel() {
-        status.innerText = "Model loaded successfully!";
-        console.log("Dummy model loaded");
-    }
+// Preview image
+imageInput.addEventListener("change", () => {
+  const file = imageInput.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      imagePreview.src = e.target.result;
+      imagePreview.style.display = "block";
+    };
+    reader.readAsDataURL(file);
+    resultDiv.innerText = ""; // clear previous result
+  }
+});
 
-    // Fake prediction logic
-    function predict() {
-        const file = fileInput.files[0];
-        if (!file) {
-            alert("Please choose an image first!");
-            return;
-        }
+// Dummy Predict Function
+predictBtn.addEventListener("click", () => {
+  if (!imageInput.files.length) {
+    alert("Please select an image first!");
+    return;
+  }
 
-        // Simulate prediction delay
-        result.innerText = "Predicting...";
-        setTimeout(() => {
-            const random = Math.random();
-            if (random > 0.5) {
-                result.innerText = "Result: FAKE IMAGE 😵‍💫";
-                result.style.color = "red";
-            } else {
-                result.innerText = "Result: REAL IMAGE 🧑‍🦱";
-                result.style.color = "green";
-            }
-        }, 1500);
-    }
+  // Simulate prediction
+  const confidence = Math.floor(Math.random() * 41) + 60; // 60% to 100%
+  const isReal = Math.random() < 0.5; // Randomly choose real or fake
 
-    // Attach event
-    predictBtn.addEventListener("click", predict);
+  const resultText = isReal
+    ? `✅ ${confidence}% Real`
+    : `🚨 ${100 - confidence}% Fake`;
 
-    // Simulate model loading on page load
-    loadModel();
+  resultDiv.innerText = resultText;
+  resultDiv.style.color = isReal ? "#00ff88" : "#ff4d4d";
 });
