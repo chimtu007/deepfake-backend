@@ -86,10 +86,9 @@
 
       const result = await response.json();
 
-      // Retry if the model is still loading
       if (result.error && retries > 0 && result.error.includes("loading")) {
         resultDiv.innerHTML = "⏳ Waking up the model... retrying in 5s.";
-        await new Promise(r => setTimeout(r, 5000));
+        await new Promise((res) => setTimeout(res, 5000));
         return await callGradioAPI(base64Image, retries - 1);
       }
 
@@ -107,16 +106,17 @@
         resultDiv.innerHTML = "<span class='loading'>⏳ Analyzing image...</span>";
 
         const result = await callGradioAPI(base64Image);
+        console.log("API Result:", result); // DEBUG LOG
 
-        if (result && result.data && result.data.length > 0) {
-          const label = result.data[0].toString().toLowerCase();
+        if (result && result.data && result.data.length > 0 && typeof result.data[0] === "string") {
+          const label = result.data[0].toLowerCase();
 
           if (label.includes("fake")) {
             resultDiv.innerHTML = `<span class="fake">❌ Prediction: FAKE</span>`;
           } else if (label.includes("real")) {
             resultDiv.innerHTML = `<span class="real">✅ Prediction: REAL</span>`;
           } else {
-            resultDiv.innerHTML = `Result: ${result.data[0]}`;
+            resultDiv.innerHTML = `🔍 Result: ${label}`;
           }
         } else {
           resultDiv.innerHTML = "❌ Could not detect image. Try another one.";
