@@ -6,35 +6,34 @@
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
-      background: #0e101c;
-      color: #fff;
-      margin: 0;
-      padding: 0;
+      background: #121212;
+      color: #f5f5f5;
       text-align: center;
+      padding: 40px;
     }
 
     .container {
-      max-width: 500px;
-      margin: 50px auto;
+      background-color: #1f1f1f;
       padding: 30px;
-      background: #1e2130;
-      border-radius: 15px;
-      box-shadow: 0 0 20px #000;
+      border-radius: 10px;
+      max-width: 500px;
+      margin: auto;
+      box-shadow: 0 0 10px #333;
     }
 
     h1 {
-      margin-bottom: 10px;
+      color: #00ffd5;
     }
 
     input[type="file"] {
-      margin-top: 20px;
+      margin-top: 15px;
     }
 
     #preview {
       margin-top: 20px;
       max-width: 100%;
-      border: 2px solid #555;
-      border-radius: 10px;
+      border: 2px solid #444;
+      border-radius: 8px;
     }
 
     #result {
@@ -44,24 +43,24 @@
     }
 
     .loading {
-      color: #ffd700;
+      color: gold;
     }
 
     .real {
-      color: #00ff99;
+      color: #00ff88;
     }
 
     .fake {
-      color: #ff4040;
+      color: #ff3c3c;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>🔍 Deepfake Detector</h1>
-    <p>Upload a face image to check if it's Real or Fake using AI</p>
+    <h1>🧠 Deepfake Detector</h1>
+    <p>Select an image to detect if it's <b>Real</b> or <b>Fake</b>.</p>
     <input type="file" id="fileInput" accept="image/*" />
-    <img id="preview" alt="Image Preview" />
+    <img id="preview" alt="Preview" />
     <div id="result">Result will appear here...</div>
   </div>
 
@@ -71,7 +70,7 @@
     const resultDiv = document.getElementById("result");
 
     async function callGradioAPI(base64Image, retries = 3) {
-      const response = await fetch(
+      const res = await fetch(
         "https://singhvikram848446-deep-fake-detection.hf.space/api/predict/",
         {
           method: "POST",
@@ -84,10 +83,10 @@
         }
       );
 
-      const result = await response.json();
+      const result = await res.json();
 
       if (result.error && retries > 0 && result.error.includes("loading")) {
-        resultDiv.innerHTML = "⏳ Waking up the model... retrying in 5s.";
+        resultDiv.innerHTML = "⏳ Starting server... retrying in 5s.";
         await new Promise((res) => setTimeout(res, 5000));
         return await callGradioAPI(base64Image, retries - 1);
       }
@@ -103,23 +102,23 @@
       reader.onload = async () => {
         const base64Image = reader.result;
         preview.src = base64Image;
-        resultDiv.innerHTML = "<span class='loading'>⏳ Analyzing image...</span>";
+        resultDiv.innerHTML = "<span class='loading'>⏳ Analyzing...</span>";
 
         const result = await callGradioAPI(base64Image);
-        console.log("API Result:", result); // DEBUG LOG
+        console.log("API Response:", result);
 
         if (result && result.data && result.data.length > 0 && typeof result.data[0] === "string") {
           const label = result.data[0].toLowerCase();
 
           if (label.includes("fake")) {
-            resultDiv.innerHTML = `<span class="fake">❌ Prediction: FAKE</span>`;
+            resultDiv.innerHTML = `<span class="fake">❌ FAKE</span>`;
           } else if (label.includes("real")) {
-            resultDiv.innerHTML = `<span class="real">✅ Prediction: REAL</span>`;
+            resultDiv.innerHTML = `<span class="real">✅ REAL</span>`;
           } else {
-            resultDiv.innerHTML = `🔍 Result: ${label}`;
+            resultDiv.innerText = `🔎 Result: ${label}`;
           }
         } else {
-          resultDiv.innerHTML = "❌ Could not detect image. Try another one.";
+          resultDiv.innerText = "❌ Could not detect. Try another image.";
         }
       };
 
