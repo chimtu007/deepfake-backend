@@ -6,21 +6,25 @@ from PIL import Image
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing import image
 
-MODEL_PATH = 'deepfake_model.h5'
-FILE_ID = '1nxuez46yUSBXNcnQSTnbRpSsEPI5NNNm'
+# --- Constants ---
+MODEL_PATH = "deepfake_cnn_model.h5"
+GDRIVE_FILE_ID = "1nxuez46yUSBXNcnQSTnbRpSsEPI5NNNm"  # your new .h5 file link ID
 
+# --- Download model if needed ---
 if not os.path.exists(MODEL_PATH):
-    with st.spinner('Downloading model...'):
-        gdown.download(f'https://drive.google.com/uc?id={FILE_ID}', MODEL_PATH, quiet=False)
+    with st.spinner("📥 Downloading model..."):
+        gdown.download(f"https://drive.google.com/uc?id={GDRIVE_FILE_ID}", MODEL_PATH, quiet=False)
 
-# Remove caching for now
-def load_deepfake_model():
-    return load_model(MODEL_PATH, compile=False)
+# --- Load model ---
+@st.cache_resource
+def load_model_cached():
+    return load_model(MODEL_PATH)
 
-model = load_deepfake_model()
+model = load_model_cached()
 
-st.title("🧠 Deepfake Detector")
-st.write("Upload an image to check if it's Real or Fake")
+# --- Streamlit UI ---
+st.title("🧠 Deepfake CNN Detector")
+st.write("Upload a face image to predict if it's **Real** or **Fake**.")
 
 uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
 
@@ -30,12 +34,12 @@ if uploaded_file is not None:
 
     if st.button("Predict"):
         with st.spinner("Analyzing..."):
-            img = img.resize((224, 224))  # adjust if your model requires different
-            img_array = image.img_to_array(img)
-            img_array = np.expand_dims(img_array, axis=0) / 255.0
+            img = img.resize((128, 128))  # match training size
+            img_array = image.img_to_array(img) / 255.0
+            img_array = np.expand_dims(img_array, axis=0)
 
             prediction = model.predict(img_array)[0][0]
             label = "Fake" if prediction > 0.5 else "Real"
-            confidence = float(prediction) if prediction > 0.5 else 1 - float(prediction)
+            confidence = prediction if prediction > 0.5 else 1 - prediction
 
             st.success(f"Prediction: **{label}** with confidence **{confidence:.2f}**")
